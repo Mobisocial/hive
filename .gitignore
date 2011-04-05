@@ -1,0 +1,10 @@
+*.class
+*.apk
+*.ap
+*.ap_
+*.jar
+classes.dex
+gen
+.project
+.classpath
+local.properties
