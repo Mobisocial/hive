@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursor;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,9 +24,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import edu.stanford.mobisocial.hive.model.Hive;
 import java.util.ArrayList;
-import org.json.JSONArray;
+import java.util.List;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 public class HiveActivity extends ListActivity implements OnItemClickListener{
 
@@ -33,6 +33,7 @@ public class HiveActivity extends ListActivity implements OnItemClickListener{
 	private NotificationManager mNotificationManager;
 	private SQLiteCursor mCursor;
 	private DBHelper mDb;
+    public static final String TAG = "HiveActivity";
 
 
     @Override
@@ -93,30 +94,28 @@ public class HiveActivity extends ListActivity implements OnItemClickListener{
 				}
 			});
 
-
-        String invite = intent.getStringExtra("invite");
-        if(invite != null){
-            try{
-                JSONObject inviteObj = new JSONObject(invite);
-                handleInvite(inviteObj);
-            } catch(JSONException e){}
+        if(intent != null && intent.getStringExtra("type") != null && 
+           intent.getStringExtra("type").equals("invite_app_feed")){
+            handleInviteIntent(intent);
         }
     }
 
-    private void handleInvite(JSONObject invite){
-        try{
-            long contactId = invite.getLong("sender");
-            String feedName = invite.getString("feedName");
-            JSONArray participants = invite.getJSONArray("participants");
-            BeetleAPI.addSubscriber(this, contactId, feedName);
-            ArrayList<Long> participantIds = new ArrayList<Long>();
-            for(int i = 0; i < participants.length(); i++){
-                participantIds.add(participants.getLong(i));
-            }
-            BeetleAPI.sendSubscribeRequests(this, participantIds, feedName);
+    private void handleInviteIntent(Intent intent){
+        Log.i(TAG, "Processing intent " + intent);
+        long contactId = intent.getLongExtra("sender", -1);
+        String feedName = intent.getStringExtra("sharedFeedName");
+        long[] participants = intent.getLongArrayExtra("participants");
+        BeetleAPI.addSubscriber(this, contactId, feedName);
+        List<Long> parts = new ArrayList<Long>();
+        for(int i = 0; i < participants.length; i++) {
+            Log.i(TAG, "Subscribing to " + participants[i]);
+            parts.add(participants[i]);
         }
-        catch(JSONException e){throw new RuntimeException(e);}
+        BeetleAPI.sendSubscribeRequests(this, parts, feedName);
+        mDb.insertHive(feedName, feedName);
+        mCursor.requery();
     }
+
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {

@@ -34,7 +34,8 @@ public class BeetleAPI{
     public static Intent inviteIntent(String feedName, String appPackage){
         Intent i = new Intent();
         i.setAction(INTENT_ACTION_INVITE);
-        i.putExtra("feedName", feedName);
+        i.putExtra("type", "invite_app_feed");
+        i.putExtra("sharedFeedName", feedName);
         i.putExtra("packageName", appPackage);
         return i;
     }
@@ -69,12 +70,12 @@ public class BeetleAPI{
 
     public static void sendSubscribeRequests(Context c, 
                                              Collection<Long> contactIds, 
-                                             String feedName){
+                                             String subscribeToFeed){
         Uri url = Uri.parse(CONTENT_URI + "/out");
         ContentValues values = new ContentValues();
         JSONObject obj = new JSONObject();
         try{
-            obj.put("feedName", feedName);
+            obj.put("subscribeToFeed", subscribeToFeed);
         }catch(JSONException e){}
         values.put(OBJ_JSON, obj.toString());
         values.put(OBJ_DESTINATION, buildAddresses(contactIds));

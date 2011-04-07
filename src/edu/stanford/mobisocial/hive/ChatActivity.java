@@ -66,7 +66,6 @@ public class ChatActivity extends ListActivity implements OnItemClickListener{
                                     JSONObject obj = new JSONObject();
                                     obj.put("type", "chat");
                                     obj.put("text", msg);
-
                                     BeetleAPI.addToFeed(
                                         ChatActivity.this, 
                                         mFeedName,
